@@ -15,36 +15,34 @@ if (!empty($_GET['url'])){
 	if (!is_dir($lib_folder)){mkdir($lib_folder);}
 	
 	$url=strip_tags($_GET['url']);
-	$local_filename=$lib_folder.basename($url);
+	define('LOCAL_FILENAME',$lib_folder.basename($url));
 	$flag='non';
 	if (
-		!is_file($local_filename)
+		!is_file(LOCAL_FILENAME)
 		||
-		($check_updates && !isSameFile())
+		($check_updates && !isSameFile($url))
 				
 	){
 		$lib=file_get_contents($url);
-		file_put_contents($local_filename,$lib);
+		file_put_contents(LOCAL_FILENAME,$lib);
 		$head = array_change_key_case(get_headers($url, TRUE));
-		file_put_contents($local_filename.'.info', $head['last-modified']);
+		file_put_contents(LOCAL_FILENAME.'.info', $head['last-modified']);
 		$flag='oui';
 	}
-	header('Content-Type: '.mime_content_type($local_filename));
-	exit(file_get_contents($local_filename));
+	header('Content-Type: '.mime_content_type(LOCAL_FILENAME));
+	exit(file_get_contents(LOCAL_FILENAME));
 }
 
 function getDistantFile($url){
-	global $local_filename;
 	$lib=file_get_contents($url);
-	file_put_contents($local_filename,$lib);
+	file_put_contents(LOCAL_FILENAME,$lib);
 	$head = array_change_key_case(get_headers($url, TRUE));
-	file_put_contents($local_filename.'.info', $head['last-modified']);
+	file_put_contents(LOCAL_FILENAME.'.info', $head['last-modified']);
 }
 
-function isSameFile(){
-	global $local_filename,$url;
+function isSameFile($url){
 	$head = array_change_key_case(get_headers($url, TRUE));
-	$local=file_get_contents($local_filename.'.info');
+	$local=file_get_contents(LOCAL_FILENAME.'.info');
 	$distant=$head['last-modified'];
 	return $distant==$local;
 }
