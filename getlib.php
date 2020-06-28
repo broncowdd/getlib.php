@@ -16,29 +16,32 @@ if (!empty($_GET['url'])){
 	
 	$url=strip_tags($_GET['url']);
 	define('LOCAL_FILENAME',$lib_folder.basename($url));
-	$flag='non';
+	$ext=pathinfo(LOCAL_FILENAME)['extension'];
+	//$flag='non';
 	if (
 		!is_file(LOCAL_FILENAME)
 		||
 		($check_updates && !isSameFile($url))
 				
 	){
-		$lib=file_get_contents($url);
+		$lib=file_get_contents($url,false,null,0,1000000);
 		file_put_contents(LOCAL_FILENAME,$lib);
 		$head = array_change_key_case(get_headers($url, TRUE));
 		file_put_contents(LOCAL_FILENAME.'.info', $head['last-modified']);
-		$flag='oui';
+		//$flag='oui';
 	}
-	header('Content-Type: '.mime_content_type(LOCAL_FILENAME));
+	if ($ext=='css'){
+		$mime='text/css';
+	}elseif ($ext=='js'){
+		$mime='text/javascript';
+	}else{
+		$mime=mime_content_type(LOCAL_FILENAME);
+	}
+	
+	header('Content-Type: '.$mime);
 	exit(file_get_contents(LOCAL_FILENAME));
 }
 
-function getDistantFile($url){
-	$lib=file_get_contents($url);
-	file_put_contents(LOCAL_FILENAME,$lib);
-	$head = array_change_key_case(get_headers($url, TRUE));
-	file_put_contents(LOCAL_FILENAME.'.info', $head['last-modified']);
-}
 
 function isSameFile($url){
 	$head = array_change_key_case(get_headers($url, TRUE));
